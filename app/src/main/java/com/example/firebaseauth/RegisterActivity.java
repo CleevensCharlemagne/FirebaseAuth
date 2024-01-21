@@ -1,0 +1,108 @@
+package com.example.firebaseauth;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+public class RegisterActivity extends AppCompatActivity {
+
+    private TextInputEditText editTextEmail, editTextPassword;
+    private Button btnRegister;
+    private TextView goToLogin;
+
+    private FirebaseAuth mAuth;
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if(currentUser != null){
+            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_register);
+
+        // Initialize Firebase Auth
+        mAuth = FirebaseAuth.getInstance();
+
+        editTextEmail = findViewById(R.id.editTextEmail);
+        editTextPassword = findViewById(R.id.editTextPassword);
+        btnRegister = findViewById(R.id.btnRegister);
+        goToLogin = findViewById(R.id.goToLogin);
+
+        btnRegister.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String email = String.valueOf(editTextEmail.getText()).trim();
+                String password = String.valueOf(editTextPassword.getText());
+
+                if(TextUtils.isEmpty(email)){
+                    Toast.makeText(RegisterActivity.this, "Enter your email", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if(TextUtils.isEmpty(password)){
+                    Toast.makeText(RegisterActivity.this, "Choose your password", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                if(password.length() < 8){
+                    Toast.makeText(RegisterActivity.this, "Password must contain at least 8 caracters", Toast.LENGTH_LONG).show();
+                    editTextEmail.setText("");
+                    return;
+                }
+
+                mAuth.createUserWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    // Sign up success, update UI with the signed-in user's information
+                                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+
+                                    Toast.makeText(RegisterActivity.this, "Registration succeed.",
+                                            Toast.LENGTH_SHORT).show();
+                                } else {
+                                    // If sign up fails, display a message to the user.
+                                    Toast.makeText(RegisterActivity.this, "Registration failed.",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+
+            }
+        });
+
+        goToLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+        });
+
+    }
+
+
+}
